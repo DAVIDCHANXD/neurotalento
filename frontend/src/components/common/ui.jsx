@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertCircle, BookOpen, Check, Heart, LoaderCircle, Play, Star, X } from 'lucide-react';
+import { AlertCircle, BookOpen, Check, Heart, LoaderCircle, Play, Star, X, Code2, Palette, CalendarCheck, Calculator, Languages, Wallet, Globe, PencilLine, ArrowUpRight } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { usePlatform } from '../../context/PlatformContext';
 export const money = (cents, currency = 'MXN') => new Intl.NumberFormat('es-MX', { style: 'currency', currency, maximumFractionDigits: cents % 100 ? 2 : 0 }).format(cents / 100);
@@ -36,17 +36,43 @@ export function Modal({ title, onClose, children, wide = false }) {
   return <dialog ref={dialog} className={`modal ${wide ? 'modal-wide' : ''}`} onClick={e => e.target === dialog.current && onClose()} aria-labelledby="modal-title"><div className="modal-head"><h2 id="modal-title">{title}</h2><button className="icon-button" aria-label="Cerrar ventana" onClick={onClose}><X size={20} /></button></div>{children}</dialog>;
 }
 export function Progress({ value, label }) { return <div className="progress-wrap">{label && <div className="progress-label"><span>{label}</span><strong>{value}%</strong></div>}<div className="progress-track" role="progressbar" aria-label={label || 'Progreso del curso'} aria-valuenow={value} aria-valuemin={0} aria-valuemax={100}><div style={{ width: `${value}%` }} /></div></div>; }
+const coverThemes = {
+  code: { icon: Code2, label: 'Programación', headline: 'De una idea\na tu primer código.', mark: '</>', tone: 'orange' },
+  web: { icon: Globe, label: 'Tecnología', headline: 'Tu próxima idea\npuede vivir en la web.', mark: 'www.', tone: 'red' },
+  design: { icon: Palette, label: 'Diseño', headline: 'Dale forma\na lo que imaginas.', mark: 'Aa', tone: 'red' },
+  draw: { icon: PencilLine, label: 'Dibujo', headline: 'Todo empieza\ncon un trazo.', mark: 'Aa', tone: 'orange' },
+  organize: { icon: CalendarCheck, label: 'Organización', headline: 'Haz espacio\npara lo importante.', mark: '01 /', tone: 'yellow' },
+  math: { icon: Calculator, label: 'Matemáticas', headline: 'Encuentra la lógica.\nHaz la conexión.', mark: 'x+y', tone: 'orange' },
+  language: { icon: Languages, label: 'Idiomas', headline: 'Una conversación.\nNuevas posibilidades.', mark: 'Hola.', tone: 'yellow' },
+  finance: { icon: Wallet, label: 'Finanzas', headline: 'Pequeñas decisiones.\nMás claridad.', mark: '+ %', tone: 'red' },
+  general: { icon: BookOpen, label: 'Aprendizaje', headline: 'Una nueva habilidad.\nUn paso a la vez.', mark: 'nt.', tone: 'yellow' },
+};
+const categoryArt = { 'Programación': 'code', 'Diseño': 'design', 'Matemáticas': 'math', 'Idiomas': 'language', 'Educación': 'organize', 'Finanzas': 'finance', 'Tecnología': 'web' };
+
 export function CourseArt({ course, hero = false }) {
-  const type = course?.art || ({ 'Programación': 'code', 'Diseño': 'design', 'Matemáticas': 'math', 'Idiomas': 'language', 'Educación': 'organize', 'Finanzas': 'finance' }[course?.category?.name] || 'web');
-  const color = course?.color || '#e6e6f8';
-  if (course?.thumbnailUrl && !hero) return <div className="course-art" style={{ background: color }}><img src={course.thumbnailUrl} alt="" loading="lazy" onError={e => { e.currentTarget.style.display = 'none'; }} /></div>;
-  return <div className={`course-art art-${type} ${hero ? 'hero-art' : ''}`} style={{ background: hero ? 'transparent' : color }} aria-hidden="true"><svg viewBox="0 0 400 240" fill="none">
-    <circle cx="335" cy="45" r="60" fill="white" fillOpacity=".24" /><circle cx="45" cy="226" r="78" fill="white" fillOpacity=".2" />
-    {['code','web'].includes(type) ? <><rect x="80" y="38" width="243" height="157" rx="12" fill="#3d356b" transform="rotate(-5 200 120)" /><rect x="70" y="29" width="243" height="157" rx="12" fill="#fbfaff" transform="rotate(-5 200 120)" /><path d="M69 63l243-21" stroke="#ddd7ef" strokeWidth="2" /><circle cx="83" cy="49" r="4" fill="#f49c84" /><circle cx="97" cy="48" r="4" fill="#e9c26a" /><circle cx="111" cy="47" r="4" fill="#9bc9b3" /><path d="M131 98l-22 23 25 19M247 88l25 21-21 23M211 84l-27 68" stroke="#7761c7" strokeWidth="9" strokeLinecap="round" strokeLinejoin="round" /><rect x="260" y="152" width="70" height="47" rx="12" fill="#d2e4a4" transform="rotate(9 280 160)" /><text x="276" y="184" fill="#455635" fontSize="24" fontFamily="monospace">{type === 'web' ? 'CSS' : 'py'}</text><path d="M56 124v17m-8-8h16M332 105v17m-8-8h16" stroke="#8779b4" strokeWidth="3" strokeLinecap="round" /></> : type === 'design' || type === 'draw' ? <><rect x="113" y="28" width="171" height="183" rx="7" fill="#e6a48d" transform="rotate(9 200 120)" /><rect x="95" y="25" width="171" height="183" rx="7" fill="#fffaf4" transform="rotate(-8 180 120)" /><circle cx="167" cy="105" r="43" fill="#e98a70" /><path d="M190 73l62 90H132z" fill="#4646a0" /><rect x="112" y="142" width="51" height="45" rx="3" fill="#ebc56f" /><path d="M295 76l-25 96" stroke="#494473" strokeWidth="14" strokeLinecap="round" /><path d="M271 168l-9 30 23-23" fill="#d9b88e" /><circle cx="81" cy="70" r="8" fill="#eabf71" /><path d="M311 193v17m-8-8h16" stroke="#bb816b" strokeWidth="3" strokeLinecap="round" /></> : type === 'organize' ? <><rect x="88" y="32" width="203" height="172" rx="14" fill="#83a897" transform="rotate(5 190 120)" /><rect x="74" y="28" width="203" height="172" rx="14" fill="#fffdf6" transform="rotate(-5 180 120)" /><rect x="130" y="16" width="92" height="22" rx="9" fill="#638b75" /><rect x="100" y="72" width="24" height="24" rx="7" fill="#e0ebdb" /><path d="M106 84l5 5 8-11" stroke="#638b75" strokeWidth="3" strokeLinecap="round" /><path d="M141 81h92M141 121h70M141 161h84" stroke="#d3d8cb" strokeWidth="7" strokeLinecap="round" /><rect x="100" y="112" width="24" height="24" rx="7" fill="#e0ebdb" /><rect x="100" y="152" width="24" height="24" rx="7" fill="#e0ebdb" /><circle cx="288" cy="164" r="38" fill="#eac877" /><path d="M288 143v23l14 8" stroke="#6e613c" strokeWidth="4" strokeLinecap="round" /><path d="M318 65c-15 0-25 16-18 29 16-1 24-11 18-29z" fill="#7d9d6d" /></> : type === 'math' ? <><circle cx="205" cy="122" r="73" fill="#f2fbff" /><ellipse cx="205" cy="122" rx="112" ry="37" stroke="#6299b1" strokeWidth="3" transform="rotate(-35 205 122)" /><ellipse cx="205" cy="122" rx="112" ry="37" stroke="#83b5c3" strokeWidth="3" transform="rotate(40 205 122)" /><text x="163" y="146" fontSize="76" fontFamily="Georgia" fill="#3d6682">π</text><circle cx="111" cy="159" r="10" fill="#e7bc6b" /><circle cx="278" cy="166" r="9" fill="#5f8aa0" /><text x="62" y="78" fontSize="29" fill="#729eaf">+</text><text x="319" y="111" fontSize="25" fill="#729eaf">×</text></> : type === 'language' ? <><rect x="69" y="42" width="160" height="107" rx="25" fill="#fffcf3" /><path d="M100 145v24l31-26" fill="#fffcf3" /><rect x="184" y="100" width="146" height="97" rx="24" fill="#8c9b72" /><path d="M300 192v23l-31-24" fill="#8c9b72" /><text x="95" y="108" fill="#97824b" fontSize="45" fontFamily="Georgia">Hello</text><text x="207" y="159" fill="#fffcec" fontSize="35" fontFamily="Georgia">Hola</text><path d="M279 44v20m-10-10h20" stroke="#c9a855" strokeWidth="3" /></> : <><rect x="100" y="48" width="180" height="153" rx="15" fill="#fbfaff" transform="rotate(-7 190 120)" /><path d="M132 154l33-35 29 9 47-49" stroke="#8b79b5" strokeWidth="8" strokeLinecap="round" /><rect x="128" y="163" width="22" height="20" rx="4" fill="#dbd2eb" /><rect x="165" y="144" width="22" height="39" rx="4" fill="#baadd6" /><rect x="202" y="122" width="22" height="61" rx="4" fill="#8d7bb8" /><circle cx="281" cy="170" r="34" fill="#ebc875" /><text x="270" y="183" fill="#8d6c31" fontSize="35">$</text></>}
-  </svg></div>;
+  const [failedUrl, setFailedUrl] = useState(null);
+  const type = course?.art || categoryArt[course?.category?.name] || 'general';
+  const theme = coverThemes[type] || coverThemes.general;
+  const Icon = theme.icon;
+  const thumbnail = !hero && course?.thumbnailUrl;
+  if (thumbnail && thumbnail !== failedUrl) {
+    return <div className="course-art course-photo"><img src={thumbnail} alt="" loading="lazy" decoding="async" onError={() => setFailedUrl(thumbnail)} /></div>;
+  }
+  return <div className={`course-art course-cover cover-${theme.tone} ${hero ? 'hero-art' : ''}`} aria-hidden="true">
+    <div className="cover-topline"><span><Icon size={16} strokeWidth={1.5} absoluteStrokeWidth />{theme.label}</span></div>
+    <span className="cover-headline">{theme.headline}</span>
+    <div className="cover-bottomline"><span>NEUROTALENTO</span><span className="cover-mark">{theme.mark}</span></div>
+  </div>;
 }
+
 export function HeroArt() {
-  return <div className="journey-art" aria-hidden="true"><svg viewBox="0 0 380 300" fill="none"><circle cx="201" cy="151" r="115" fill="#e6e1fb" /><circle cx="201" cy="151" r="88" stroke="#d5cdf1" strokeDasharray="4 8" /><path d="M82 247c-8-71 118 24 96-45s-88-53-37-97 87 17 104-27" stroke="#aaa0dd" strokeWidth="13" strokeLinecap="round" /><path d="M82 247c-8-71 118 24 96-45s-88-53-37-97 87 17 104-27" stroke="#faf8ff" strokeWidth="3" strokeDasharray="2 10" strokeLinecap="round" /><rect x="220" y="135" width="50" height="112" rx="8" fill="#b8a9ec" /><rect x="266" y="100" width="48" height="147" rx="8" fill="#8e7ad4" /><path d="M262 247h64" stroke="#c7bde7" strokeWidth="3" strokeLinecap="round" /><path d="M263 92l16-14 14 14" stroke="#e7b55e" strokeWidth="5" strokeLinecap="round" /><path d="M242 106l19 9 14-15" stroke="#e7b55e" strokeWidth="5" strokeLinecap="round" /><circle cx="252" cy="80" r="14" fill="#d9956e" /><path d="M239 79c-3-20 26-26 28-7l-13-3-2 12" fill="#393250" /><path d="M241 96l26-5 12 42-32 7" fill="#eebf64" /><path d="M246 136l3 30 22-1-5-30M266 134l19 23 15-8-24-29" fill="#454076" /><path d="M249 166h-12M297 149l8-5" stroke="#3a3458" strokeWidth="7" strokeLinecap="round" /><path d="M240 108l-13 13-17-12M270 103l10-19" stroke="#d9956e" strokeWidth="7" strokeLinecap="round" /><path d="M69 204c-27-26-17-46-17-46 27 4 30 27 17 46M70 204c-1-29 21-40 21-40 12 25-1 37-21 40" fill="#899f81" /><path d="M69 199v47" stroke="#70856a" strokeWidth="3" /><path d="M48 233h42l-7 26H55z" fill="#dbb8a1" /><rect x="46" y="68" width="125" height="48" rx="13" fill="white" transform="rotate(-8 100 80)" /><circle cx="68" cy="92" r="11" fill="#ded8f3" /><path d="M65 91l3 3 5-7" stroke="#7360b6" strokeWidth="2" strokeLinecap="round" /><path d="M88 86l62-8M88 96l39-5" stroke="#d3cde3" strokeWidth="5" strokeLinecap="round" /><path d="M314 44v17m-8-8h16M119 33v12m-6-6h12" stroke="#b3a2d8" strokeWidth="3" strokeLinecap="round" /></svg><span className="journey-sticker"><Check size={15} /> Un paso también es avanzar</span></div>;
+  return <aside className="journey-art learning-note" aria-label="Una forma de empezar">
+    <div className="learning-note-heading"><span className="learning-note-label">A TU MANERA</span><BookOpen size={21} strokeWidth={1.5} absoluteStrokeWidth /></div>
+    <p className="learning-note-title">No necesitas hacerlo todo hoy.</p>
+    <p className="learning-note-copy">Solo encontrar algo que te dé curiosidad.</p>
+    <ol className="learning-note-steps"><li><span>01</span>Elige lo que quieres explorar.</li><li><span>02</span>Empieza con una lección.</li><li><span>03</span>Vuelve cuando quieras.</li></ol>
+    <Link className="learning-note-link" to="/catalogo">Encuentra tu primer paso<ArrowUpRight size={17} strokeWidth={2} absoluteStrokeWidth /></Link>
+  </aside>;
 }
 export function CourseCard({ course }) {
   const { isFavorite, toggleFavorite } = usePlatform();
