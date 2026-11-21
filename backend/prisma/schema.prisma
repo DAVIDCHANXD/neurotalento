@@ -1,0 +1,178 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+enum Role {
+  STUDENT
+  CREATOR
+}
+enum CourseStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+enum EnrollmentStatus {
+  ACTIVE
+  COMPLETED
+}
+enum TransactionStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+model User {
+  id String @id @default(uuid()) @db.Uuid
+  name String
+  email String @unique
+  passwordHash String
+  role Role @default(STUDENT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  creatorProfile CreatorProfile?
+  studentProfile StudentProfile?
+  courses Course[]
+  enrollments Enrollment[]
+  purchases Purchase[]
+  reviews Review[]
+}
+model CreatorProfile {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @unique @db.Uuid
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  biography String @default("")
+  specialties String[] @default([])
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model StudentProfile {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @unique @db.Uuid
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  preferences Json @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model Category {
+  id String @id @default(uuid()) @db.Uuid
+  name String @unique
+  description String?
+  createdAt DateTime @default(now())
+  courses Course[]
+}
+model Course {
+  id String @id @default(uuid()) @db.Uuid
+  creatorId String @db.Uuid
+  creator User @relation(fields: [creatorId], references: [id], onDelete: Restrict)
+  categoryId String @db.Uuid
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  title String
+  slug String @unique
+  description String
+  thumbnailUrl String?
+  priceCents Int @default(0)
+  currency String @default("MXN")
+  status CourseStatus @default(DRAFT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  modules Module[]
+  enrollments Enrollment[]
+  purchases Purchase[]
+  reviews Review[]
+  @@index([status, categoryId])
+  @@index([creatorId])
+}
+model Module {
+  id String @id @default(uuid()) @db.Uuid
+  courseId String @db.Uuid
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title String
+  description String @default("")
+  position Int
+  lessons Lesson[]
+  @@unique([courseId, position])
+}
+model Lesson {
+  id String @id @default(uuid()) @db.Uuid
+  moduleId String @db.Uuid
+  module Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  title String
+  description String @default("")
+  videoUrl String
+  durationSeconds Int @default(0)
+  position Int
+  isPreview Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  progress LessonProgress[]
+  @@unique([moduleId, position])
+}
+model Enrollment {
+  id String @id @default(uuid()) @db.Uuid
+  studentId String @db.Uuid
+  student User @relation(fields: [studentId], references: [id], onDelete: Restrict)
+  courseId String @db.Uuid
+  course Course @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  status EnrollmentStatus @default(ACTIVE)
+  enrolledAt DateTime @default(now())
+  completedAt DateTime?
+  progress LessonProgress[]
+  @@unique([studentId, courseId])
+  @@index([courseId])
+}
+model LessonProgress {
+  id String @id @default(uuid()) @db.Uuid
+  enrollmentId String @db.Uuid
+  enrollment Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  lessonId String @db.Uuid
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  completed Boolean @default(false)
+  completedAt DateTime?
+  updatedAt DateTime @updatedAt
+  @@unique([enrollmentId, lessonId])
+  @@index([lessonId])
+}
+model Purchase {
+  id String @id @default(uuid()) @db.Uuid
+  studentId String @db.Uuid
+  student User @relation(fields: [studentId], references: [id], onDelete: Restrict)
+  courseId String @db.Uuid
+  course Course @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  amountCents Int
+  commissionCents Int
+  creatorAmountCents Int
+  currency String
+  status TransactionStatus @default(PENDING)
+  createdAt DateTime @default(now())
+  payments Payment[]
+  @@unique([studentId, courseId])
+  @@index([courseId, status])
+}
+model Payment {
+  id String @id @default(uuid()) @db.Uuid
+  purchaseId String @db.Uuid
+  purchase Purchase @relation(fields: [purchaseId], references: [id], onDelete: Restrict)
+  provider String
+  providerReference String @unique
+  amountCents Int
+  status TransactionStatus @default(PENDING)
+  createdAt DateTime @default(now())
+  @@index([purchaseId])
+}
+model Review {
+  id String @id @default(uuid()) @db.Uuid
+  studentId String @db.Uuid
+  student User @relation(fields: [studentId], references: [id], onDelete: Restrict)
+  courseId String @db.Uuid
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  rating Int
+  comment String @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([studentId, courseId])
+  @@index([courseId])
+}
