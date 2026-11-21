@@ -2,6 +2,16 @@
 
 Plataforma para crear y consumir cursos digitales. Backend JavaScript con Express, PostgreSQL en Neon y Prisma **6.19.0**. El frontend no se modifica en esta implementación.
 
+## Documentación del backend
+
+| Documento | Qué explica |
+| --- | --- |
+| [Guía del backend](docs/backend.md) | Funciones implementadas, arquitectura, archivos, instalación, mantenimiento, pruebas y pendientes |
+| [Referencia de la API](docs/backend-api.md) | Endpoints, permisos, cuerpos de petición, respuestas y conexión del frontend |
+| [Base de datos](docs/database.md) | Entidades, relaciones, restricciones, migraciones y cálculo de comisiones |
+
+Para entender el proyecto comienza por la guía. Para construir el frontend utiliza la referencia de la API.
+
 ## Instalación
 
 Requiere Node.js 22 y npm. Desde la raíz del repositorio, en PowerShell:
