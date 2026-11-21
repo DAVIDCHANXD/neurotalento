@@ -8,7 +8,9 @@ const text = (name, max, optional = false) => {
 const integer = (name, max = 2147483647) => body(name).isInt({ min: 0, max }).toInt();
 const url = name => body(name).isURL({ protocols: ['https', 'http'], require_protocol: true }).isLength({ max: 2048 });
 export const rules = {
-  register: [text('name', 100), body('email').isString().bail().trim().isEmail().isLength({ max: 254 }).toLowerCase(), body('password').isString().bail().isLength({ min: 10 }).custom(v => Buffer.byteLength(v, 'utf8') <= 72), body('role').optional().isIn(['STUDENT', 'CREATOR'])],
+  guardian: [body('age').isInt({ min: 18, max: 120 }).toInt(), body('relationship').isIn(['MOTHER', 'FATHER', 'GUARDIAN']), body('responsible').custom(value => value === true)],
+  google: [body('credential').isString().isLength({ min: 20, max: 10000 }), body('challenge').isString().isLength({ min: 20, max: 2000 }), body('role').isIn(['TUTOR', 'TEACHER']), body('guardian').optional().isObject({ strict: true }), body('guardian.age').optional().isInt({ min: 18, max: 120 }).toInt(), body('guardian.relationship').optional().isIn(['MOTHER', 'FATHER', 'GUARDIAN']), body('guardian.responsible').optional().isBoolean({ strict: true })],
+  register: [text('name', 100), body('email').isString().bail().trim().isEmail().isLength({ max: 254 }).toLowerCase(), body('password').isString().bail().isLength({ min: 10 }).custom(v => Buffer.byteLength(v, 'utf8') <= 72), body('role').optional().isIn(['STUDENT', 'CREATOR']), body('guardian').optional().isObject({ strict: true })],
   login: [body('email').isString().bail().trim().isEmail().toLowerCase(), body('password').isString().bail().isLength({ min: 1 }).custom(v => Buffer.byteLength(v, 'utf8') <= 72)],
   profile: [text('name', 100, true), body('preferences').optional().isObject({ strict: true })],
   creator: [body('biography').optional().isString().isLength({ max: 5000 }), body('specialties').optional().isArray({ max: 30 }), body('specialties.*').isString().isLength({ min: 1, max: 100 }), url('avatarUrl').optional({ values: 'null' })],

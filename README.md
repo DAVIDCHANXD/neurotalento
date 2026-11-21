@@ -1,5 +1,13 @@
 # NeuroTalento
 
+## Enfoque actual del frontend
+
+El frontend activo es un MVP de apoyo educativo para **niños con TDAH de preescolar y primaria**, con registro obligatorio del tutor adulto, perfiles infantiles, actividades por pasos y herramientas docentes. Consulta [el alcance actual](PRODUCT.md) y [el recorrido de demostración de cinco minutos](docs/mvp-demo.md).
+
+La nueva demo usa únicamente datos ficticios en la sesión de la pestaña. Google no está configurado; la revisión docente, suscripciones e inscripciones se identifican como pruebas. No se conecta al backend anterior ni debe usarse con datos reales de menores. Inicia con `npm run dev:frontend`; valida con `npm test --prefix frontend` y `npm run build`.
+
+La documentación siguiente describe el backend anterior de cursos en video, conservado sin migrar su base de datos.
+
 Plataforma para crear y consumir cursos digitales. Backend JavaScript con Express, PostgreSQL en Neon y Prisma **6.19.0**. El frontend no se modifica en esta implementación.
 
 ## Documentación del backend

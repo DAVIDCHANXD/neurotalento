@@ -28,7 +28,8 @@ model User {
   id String @id @default(uuid()) @db.Uuid
   name String
   email String @unique
-  passwordHash String
+  passwordHash String?
+  googleSubject String? @unique
   role Role @default(STUDENT)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -38,6 +39,18 @@ model User {
   enrollments Enrollment[]
   purchases Purchase[]
   reviews Review[]
+  familyInvitations FamilyInvitation[]
+}
+model FamilyInvitation {
+  id String @id @default(uuid()) @db.Uuid
+  code String @unique
+  creatorId String @db.Uuid
+  creator User @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  courseKey String
+  snapshot Json
+  active Boolean @default(true)
+  createdAt DateTime @default(now())
+  @@index([creatorId, courseKey])
 }
 model CreatorProfile {
   id String @id @default(uuid()) @db.Uuid

@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test": "node --test src/family/model.test.js src/services/api.test.js",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"

@@ -8,5 +8,5 @@ export function loadConfig(env = process.env) {
   const [whole, fraction = ''] = percent.split('.');
   const port = Number(env.PORT || 3000);
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('PORT inválido.');
-  return { port, secret: env.JWT_SECRET, expiresIn: env.JWT_EXPIRES_IN || '7d', commissionBps: Number(whole) * 100 + Number(fraction.padEnd(2, '0')), frontendUrl: env.FRONTEND_URL || 'http://localhost:5173' };
+  return { port, secret: env.JWT_SECRET, expiresIn: env.JWT_EXPIRES_IN || '7d', googleClientId: env.GOOGLE_CLIENT_ID || '', commissionBps: Number(whole) * 100 + Number(fraction.padEnd(2, '0')), frontendUrl: env.FRONTEND_URL || 'http://localhost:5173' };
 }

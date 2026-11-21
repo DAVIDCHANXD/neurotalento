@@ -6,6 +6,8 @@ import { authentication, authorize } from './middleware/auth.js';
 import { errorHandler } from './middleware/errors.js';
 import { validate, rules, uuid } from './middleware/validation.js';
 import { authService } from './services/auth.service.js';
+import { googleAuthService } from './services/google-auth.service.js';
+import { familyInvitationsService } from './services/family-invitations.service.js';
 import { courseService } from './services/courses.service.js';
 import { paymentService } from './services/payments.service.js';
 import { enrollmentService } from './services/enrollments.service.js';
@@ -35,7 +37,12 @@ export function createApp({ db = prisma, config = loadConfig() } = {}) {
       res.json({ success: true, message: 'NeuroTalento API funcionando', database: 'connected' });
     } catch { res.status(503).json({ success: false, message: 'PostgreSQL no disponible', database: 'disconnected' }); }
   });
-  app.use('/api/auth', authRoutes(authController(authService(db, config)), auth));
+  app.use('/api/auth', authRoutes(authController(authService(db, config), googleAuthService(db, config)), auth, config));
+  const familyInvitations = familyInvitationsService(db);
+  app.post('/api/family/invitations', auth, authorize('CREATOR'), respond(req => familyInvitations.save(req.user, req.body)));
+  app.get('/api/family/invitations/mine', auth, authorize('CREATOR'), respond(req => familyInvitations.mine(req.user)));
+  app.get('/api/family/invitations/:code', respond(req => familyInvitations.resolve(req.params.code)));
+  app.delete('/api/family/invitations/course/:id', auth, authorize('CREATOR'), respond(req => familyInvitations.revoke(req.user, req.params.id)));
   app.use('/api/users', usersRoutes(users, auth));
   app.put('/api/creators/profile', auth, authorize('CREATOR'), validate(rules.creator, ['biography', 'specialties', 'avatarUrl']), respond(req => users.updateCreator(req.user.id, req.input)));
   app.get('/api/creators/:id', validate([uuid('id')]), respond(req => users.creator(req.params.id)));

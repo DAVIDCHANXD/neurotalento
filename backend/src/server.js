@@ -16,4 +16,10 @@ async function shutdown() {
 }
 process.on('SIGINT', shutdown);
 process.on('SIGTERM', shutdown);
-server.on('error', async error => { console.error('No se pudo iniciar el servidor:', error.code); await prisma.$disconnect(); process.exit(1); });
+server.on('error', async error => {
+  console.error(error.code === 'EADDRINUSE'
+    ? `El puerto ${config.port} ya está ocupado. Cierra la otra instancia del backend antes de ejecutar npm run dev.`
+    : `No se pudo iniciar el servidor: ${error.code}`);
+  await prisma.$disconnect();
+  process.exit(1);
+});

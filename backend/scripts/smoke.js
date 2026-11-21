@@ -32,7 +32,7 @@ try {
   await ready;
   assert.equal((await request('/health')).database, 'connected');
   const register = async role => {
-    const result = await request('/auth/register', 'POST', { name: `Demo ${role}`, email: `smoke-${randomUUID()}@example.test`, password: randomBytes(24).toString('hex'), role }, undefined, 201);
+    const result = await request('/auth/register', 'POST', { name: `Demo ${role}`, email: `smoke-${randomUUID()}@example.test`, password: randomBytes(24).toString('hex'), role, ...(role === 'STUDENT' && { guardian: { age: 35, relationship: 'GUARDIAN', responsible: true } }) }, undefined, 201);
     userIds.push(result.user.id);
     assert.equal(result.user.passwordHash, undefined);
     return result;

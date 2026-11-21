@@ -86,34 +86,46 @@ test('progreso verifica inscripción y pertenencia de la lección, completa y re
 test('HTTP: registro, login, JWT, roles, validaciones, catálogo y health', async t => {
   const accounts = new Map();
   let healthy = true;
-  const safe = account => { const { passwordHash, ...user } = account; return user; };
+  const safe = account => { const { passwordHash, ...user } = account; if (user.studentProfile?.create) user.studentProfile = user.studentProfile.create; return user; };
   const db = {
     user: {
       create: async ({ data }) => { const account = { id: randomUUID(), ...data }; accounts.set(account.id, account); return safe(account); },
       findUnique: async ({ where, select }) => { const account = [...accounts.values()].find(a => a.id === where.id || a.email === where.email); return account ? (select ? safe(account) : account) : null; },
     },
+    studentProfile: { upsert: async ({ where, update }) => { const account = accounts.get(where.userId); account.studentProfile = { ...update }; return account.studentProfile; } },
     course: { findMany: async ({ where }) => { assert.equal(where.status, 'PUBLISHED'); return []; }, create: async ({ data }) => ({ id: courseId, ...data }) },
     $queryRaw: async () => { if (!healthy) throw new Error('offline'); return [{ '?column?': 1 }]; },
   };
   const server = createApp({ db, config }).listen(0, '127.0.0.1');
   await new Promise(resolve => server.once('listening', resolve));
   t.after(() => new Promise(resolve => server.close(resolve)));
-  const request = async (path, { method = 'GET', body, token } = {}) => {
-    const response = await fetch(`http://127.0.0.1:${server.address().port}/api${path}`, { method, headers: { 'Content-Type': 'application/json', ...(token && { Authorization: `Bearer ${token}` }) }, ...(body && { body: JSON.stringify(body) }) });
+  const request = async (path, { method = 'GET', body, token, origin } = {}) => {
+    const response = await fetch(`http://127.0.0.1:${server.address().port}/api${path}`, { method, headers: { 'Content-Type': 'application/json', ...(token && { Authorization: `Bearer ${token}` }), ...(origin && { Origin: origin }) }, ...(body && { body: JSON.stringify(body) }) });
     return { status: response.status, body: await response.json() };
   };
   assert.equal((await request('/health')).status, 200);
+  assert.equal((await request('/auth/google/challenge', { method: 'POST', origin: 'https://other.example', body: {} })).status, 403);
+  assert.equal((await request('/auth/google/challenge', { method: 'POST', origin: config.frontendUrl, body: {} })).status, 503);
   healthy = false;
   assert.equal((await request('/health')).status, 503);
   assert.equal((await request('/auth/me')).status, 401);
   assert.equal((await request('/auth/me', { token: 'bad' })).status, 401);
   assert.equal((await request('/auth/register', { method: 'POST', body: { email: 'bad' } })).status, 422);
-  const registered = await request('/auth/register', { method: 'POST', body: { name: 'Demo', email: 'demo@example.test', password: 'test-only-password-123' } });
+  const registration = { name: 'Demo', email: 'demo@example.test', password: 'test-only-password-123' };
+  assert.equal((await request('/auth/register', { method: 'POST', body: registration })).status, 422);
+  assert.equal((await request('/auth/register', { method: 'POST', body: { ...registration, guardian: { age: 17, relationship: 'FATHER', responsible: true } } })).status, 422);
+  const registered = await request('/auth/register', { method: 'POST', body: { ...registration, guardian: { age: 35, relationship: 'MOTHER', responsible: true } } });
   assert.equal(registered.status, 201);
   assert.equal(registered.body.data.user.passwordHash, undefined);
   assert.ok([...accounts.values()][0].passwordHash.startsWith('$2'));
   const token = registered.body.data.token;
   assert.equal((await request('/auth/me', { token })).status, 200);
+  assert.equal(registered.body.data.user.studentProfile.preferences.guardian.age, 35);
+  const guardianValues = { age: 36, relationship: 'MOTHER', responsible: true };
+  assert.equal((await request('/auth/guardian', { method: 'PUT', body: guardianValues })).status, 401);
+  assert.equal((await request('/auth/guardian', { method: 'PUT', token, body: { ...guardianValues, responsible: false } })).status, 422);
+  assert.equal((await request('/auth/guardian', { method: 'PUT', token, body: guardianValues })).status, 200);
+  assert.equal((await request('/auth/me', { token })).body.data.studentProfile.preferences.guardian.age, 36);
   assert.equal((await request('/users/profile', { method: 'PUT', token, body: { role: 'CREATOR' } })).status, 422);
   assert.equal((await request('/courses', { method: 'POST', token, body: {} })).status, 403);
   assert.equal((await request('/auth/login', { method: 'POST', body: { email: 'demo@example.test', password: 'wrong' } })).status, 401);
